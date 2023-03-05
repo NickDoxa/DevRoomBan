@@ -48,4 +48,8 @@ public class Conversion {
 	    return Duration.ofDays(months * 30);
 	}
 	
+	public static long convertToSeconds(Duration duration) {
+	    return duration.getSeconds();
+	}
+	
 }
