@@ -1,3 +1,9 @@
 messages:
   failedCommand: '&cIncorrect arguments, please try /ban <player> [duration] [reason]'
   offlinePlayer: '&cThat player is offline or does not exist!'
+MySQL:
+  host: 'localhost'
+  port: '3306'
+  password: ''
+  username: 'root@localhost'
+  database: 'bans'

@@ -27,7 +27,7 @@ public abstract class SQLManager {
 	
     /*Variable Definitions: 
      * main = JavaPlugin class
-     * name = table name within databse, 
+     * name = table name within database, 
      * primaryKeyValue = the primary key for the table A.K.A. what piece of data you will use to access the rest,
      * showStatements = boolean determining whether to print write/read information to console
      * createValueArray() = A method for defining an array containing a key name followed by a SQL data type,

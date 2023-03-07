@@ -1,0 +1,11 @@
+name: DevRoomBan
+version: 1.0
+author: NickDoxa
+main: net.oasisgames.ban.Main
+description: Test of ability for DevRoom application by Nick Doxa
+api-version: 1.19
+commands:
+  ban:
+    description: Main command for ban plugin usage!
+  tempban:
+    description: Alternate command for ban plugin usage!

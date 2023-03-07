@@ -33,20 +33,19 @@ public class BanCommand implements CommandExecutor {
 				return true;
 			}
 			//Attempt to find online player
-			Player target;
 			try {
-				target = Bukkit.getPlayer(args[0]);
+				Player target = Bukkit.getPlayer(args[0]);
+				Duration banLength = Conversion.convertStringToTime(args[1]);
+				String reason = "";
+				for (int i = 2; i < args.length; i++) {
+					reason += args[i] + "\s";
+				}
+				player.kickPlayer(target.getName());
+				player.sendMessage("Successfully banned: " + target.getName() + ", for duration of: " + banLength.toString() + ", and the reason of: " + reason); //TODO
 			} catch (NullPointerException e) {
 				player.sendMessage(offlinePlayerMsg);
 				return true;
 			}
-			Duration banLength = Conversion.convertStringToTime(args[1]);
-			String reason = "";
-			for (int i = 2; i < args.length; i++) {
-				reason += args[i];
-			}
-			player.kickPlayer(target.getName());
-			player.sendMessage("Successfully banned: " + target.getName() + ", for duration of: " + banLength.toString() + ", and the reason of: " + reason); //TODO
 		//IF SENDER NOT PLAYER
 		} else {
 			if (!label.equalsIgnoreCase("ban") && !label.equalsIgnoreCase("tempban")) return true;
@@ -55,19 +54,18 @@ public class BanCommand implements CommandExecutor {
 				return true;
 			}
 			//Attempt to find online player
-			Player target;
 			try {
-				target = Bukkit.getPlayer(args[0]);
+				Player target = Bukkit.getPlayer(args[0]);
+				Duration banLength = Conversion.convertStringToTime(args[1]);
+				String reason = "";
+				for (int i = 2; i < args.length; i++) {
+					reason += args[i] + "\s";
+				}
+				Bukkit.getLogger().info("Successfully banned: " + target.getName() + ", for duration of: " + Conversion.durationToString(banLength) + ", and the reason of: " + reason); //TODO
 			} catch (NullPointerException e) {
 				Bukkit.getLogger().info(offlinePlayerMsg);
 				return true;
 			}
-			Duration banLength = Conversion.convertStringToTime(args[1]);
-			String reason = "";
-			for (int i = 2; i < args.length; i++) {
-				reason += args[i];
-			}
-			Bukkit.getLogger().info("Successfully banned: " + target.getName() + ", for duration of: " + banLength.toString() + ", and the reason of: " + reason); //TODO
 		}
 		
 		return false;
