@@ -1,9 +1,10 @@
 messages:
+  prefix: '&7[&6DevRoom Ban&7]'
   failedCommand: '&cIncorrect arguments, please try /ban <player> [duration] [reason]'
   offlinePlayer: '&cThat player is offline or does not exist!'
 MySQL:
   host: 'localhost'
   port: '3306'
   password: ''
-  username: 'root@localhost'
-  database: 'bans'
+  username: 'root'
+  database: 'testing'

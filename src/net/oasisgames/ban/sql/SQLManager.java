@@ -20,7 +20,7 @@ public abstract class SQLManager {
 	
 	private final JavaPlugin plugin;
 	private final String tableName;
-	private final Map<Integer, Map<String, String>> creationKeyValues;
+	private final Map<Integer, String[]> creationKeyValues;
 	private final Map<Integer, String> keyValues;
 	private final String primaryKey;
 	private final boolean printStatements;
@@ -39,16 +39,15 @@ public abstract class SQLManager {
 	protected abstract String[] createKeyValueArray();
 	
 	public SQLManager(JavaPlugin main, String name, String primaryKeyValue, boolean showStatements) {
+		printStatements = showStatements;
 		plugin = main;
 		tableName = name;
 		creationKeyValues = createKeyValueMap();
 		primaryKey = primaryKeyValue;
-		printStatements = showStatements;
 		keyValues = new HashMap<Integer, String>();
 		for (int i=0;i<creationKeyValues.size();i++) {
-			for (String s : creationKeyValues.get(i).keySet()) {
-				keyValues.put(i, s);
-			}
+			String key = this.creationKeyValues.get(i)[0];
+			keyValues.put(i, key);
 		}
 		try {
 			connect();
@@ -102,23 +101,19 @@ public abstract class SQLManager {
      * LOCAL METHODS
      */
     
-    private boolean printToConsole(String msg) {
+    protected boolean printToConsole(String msg) {
     	if (printStatements) {
-    		System.out.println("[MySQL API] " + msg);
+    		System.out.println("[MySQL API - " + plugin.getName() + "] " + msg);
     	}
     	return printStatements;
     }
     
-    private Map<Integer, Map<String, String>> createKeyValueMap() {
-    	Map<Integer, Map<String, String>> numericKeys = new HashMap<Integer, Map<String, String>>();
-    	Map<String, String> keys = new HashMap<String, String>();
+    private Map<Integer, String[]> createKeyValueMap() {
+    	Map<Integer, String[]> numericKeys = new HashMap<Integer, String[]>();
     	int count = 0;
     	for (String s : this.createKeyValueArray()) {
     		String[] keyArray = s.split(" ", 2);
-    		keys.put(keyArray[0], keyArray[1]);
-    		numericKeys.put((count+1), keys);
-    		keys.clear();
-    		count++;
+    		numericKeys.put((count++), keyArray);
     	}
     	printToConsole("Key Value Map created with a total of: " + count + " keys.");
     	return numericKeys;
@@ -132,17 +127,19 @@ public abstract class SQLManager {
     private void createTable() {
     	PreparedStatement ps;
     	String statement = "CREATE TABLE IF NOT EXISTS " + tableName + " (";
-    	for (int i=0;i<creationKeyValues.size();i++) {
-    		for (String s : creationKeyValues.get(i).keySet()) {
-    			statement = statement + s + " " + creationKeyValues.get(i).get(s) + ",";
-    		}
+		printToConsole("Key Values: " + keyValues.size());
+    	for (int i=0;i<keyValues.size(); i++) {
+			statement = statement + creationKeyValues.get(i)[0] + "\s" + creationKeyValues.get(i)[1] + ",";
     	}
-    	statement = statement + "PRIMARY KEY (" + primaryKey + "))";
+    	statement = statement + "" + primaryKey + " PRIMARY KEY)";
+    	printToConsole("Executing statement: " + statement);
     	try {
     		ps = getConnection().prepareStatement(statement);
     		ps.executeUpdate();
+    		printToConsole("Table Created and Accessed Successfully!");
     	} catch (SQLException | NullPointerException e) {
-    		printToConsole("Table: " + tableName + ". Table either already exists, or an error was thrown! (Most likely not an issue)");
+    		printToConsole("Table: " + tableName + ". Table either already exists, or an error was thrown!");
+    		printToConsole("Error code: " + e);
     	}
     }
     
@@ -150,17 +147,18 @@ public abstract class SQLManager {
     public void createNewKeyValue(String key) {
 		try {
 			if (!keyExists(key)) {
-				String statement = "INSERT IGNORE INTO " + tableName + " (" + primaryKey;
+				String[] basePrime = primaryKey.split(" ");
+				String statement = "INSERT IGNORE INTO " + tableName + " (" + basePrime[0] + ",";
 				int q = 1;
 				for (int i=1;i<keyValues.size();i++) {
 					statement = statement + keyValues.get(i) + ",";
 					q++;
 				}
-				statement = statement.substring(0, statement.length()) + ") VALUES (";
+				statement = statement.substring(0, statement.length()-1) + ") VALUES (";
 				for (int i=0;i<q;i++) {
 					statement = statement + "?,";
 				}
-				statement = statement.substring(0, statement.length()) + ")";
+				statement = statement.substring(0, statement.length()-1) + ")";
 				PreparedStatement ps = getConnection().prepareStatement(statement);
 				ps.setString(1, key);
 				for (int i=2;i<q;i++) {
@@ -170,37 +168,42 @@ public abstract class SQLManager {
 				return;
 			}
 		} catch (SQLException | NullPointerException e) {
+			printToConsole("Creation error: " + e);
 			return;
 		}
 	}
     
     //Create value key set with defined arguemnts
-    public void createNewKeyValue(String key, String[] args) {
+    public boolean createNewKeyValue(String key, Object[] args) {
 		try {
 			if (!keyExists(key)) {
-				String statement = "INSERT IGNORE INTO " + tableName + " (" + primaryKey;
+				String[] basePrime = primaryKey.split(" ");
+				String statement = "INSERT IGNORE INTO " + tableName + " (" + basePrime[0] + ",";
 				int q = 1;
 				for (int i=1;i<keyValues.size();i++) {
 					statement = statement + keyValues.get(i) + ",";
 					q++;
 				}
-				statement = statement.substring(0, statement.length()) + ") VALUES (";
+				statement = statement.substring(0, statement.length()-1) + ") VALUES (";
 				for (int i=0;i<q;i++) {
 					statement = statement + "?,";
 				}
-				statement = statement.substring(0, statement.length()) + ")";
+				statement = statement.substring(0, statement.length()-1) + ")";
+				printToConsole("Executing Statement: " + statement);
 				PreparedStatement ps = getConnection().prepareStatement(statement);
 				ps.setObject(1, key);
 				for (int i=2;i<q;i++) {
 					ps.setObject(i, args[i-1]);
 				}
-				ps.setObject(q, args[q]);
+				ps.setObject(q, args[q-1]);
 				ps.executeUpdate();
-				return;
+				return true;
 			}
 		} catch (SQLException | NullPointerException e) {
-			return;
+			printToConsole("Creation error: " + e);
+			return false;
 		}
+		return false;
 	}
     
     //Update a key values information

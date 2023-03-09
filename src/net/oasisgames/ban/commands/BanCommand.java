@@ -10,16 +10,21 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 
+import net.oasisgames.ban.Main;
+import net.oasisgames.ban.sql.SQLData;
 import net.oasisgames.ban.time.Conversion;
 
 public class BanCommand implements CommandExecutor {
-
+	
+	private static final SQLData data = new SQLData();
+	public static SQLData getSQL() { return data; }
+	
 	private final String failedCommandMsg;
 	private final String offlinePlayerMsg;
 	
 	public BanCommand(FileConfiguration config) {
-		failedCommandMsg = ChatColor.translateAlternateColorCodes('&', config.getString("messages.failedCommand"));
-		offlinePlayerMsg = ChatColor.translateAlternateColorCodes('&', config.getString("messages.offlinePlayer"));
+		failedCommandMsg = Main.prefix + ChatColor.translateAlternateColorCodes('&', config.getString("messages.failedCommand"));
+		offlinePlayerMsg = Main.prefix + ChatColor.translateAlternateColorCodes('&', config.getString("messages.offlinePlayer"));
 	}
 	
 	@Override
@@ -41,7 +46,10 @@ public class BanCommand implements CommandExecutor {
 					reason += args[i] + "\s";
 				}
 				player.kickPlayer(target.getName());
-				player.sendMessage("Successfully banned: " + target.getName() + ", for duration of: " + banLength.toString() + ", and the reason of: " + reason); //TODO
+				boolean success = data.sendBanData(target, player.getName(), banLength, reason);
+				player.sendMessage(success ? Main.prefix + ChatColor.GREEN + "Successfully banned: " + target.getName() + ", for duration of: " + 
+					banLength.toString() + ", and the reason of: " + reason :
+					Main.prefix + ChatColor.RED + "Ban failed!");
 			} catch (NullPointerException e) {
 				player.sendMessage(offlinePlayerMsg);
 				return true;
@@ -61,7 +69,11 @@ public class BanCommand implements CommandExecutor {
 				for (int i = 2; i < args.length; i++) {
 					reason += args[i] + "\s";
 				}
-				Bukkit.getLogger().info("Successfully banned: " + target.getName() + ", for duration of: " + Conversion.durationToString(banLength) + ", and the reason of: " + reason); //TODO
+				target.kickPlayer(reason);
+				boolean success = data.sendBanData(target, "Console", banLength, reason);
+				Bukkit.getLogger().info(success ? Main.prefix + ChatColor.GREEN + "Successfully banned: " + target.getName() + ", for duration of: " + 
+					banLength.toString() + ", and the reason of: " + reason :
+					Main.prefix + ChatColor.RED + "Ban failed!");
 			} catch (NullPointerException e) {
 				Bukkit.getLogger().info(offlinePlayerMsg);
 				return true;
